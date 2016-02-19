@@ -41,6 +41,7 @@ function bubblesort_form($form, &$form_state) {
     '#type' => 'submit',
     '#value' => 'Step',
     '#submit' => array('bubblesort_form_step_submit'),
+    '#disabled' => !variable_get('bubblesort_in_progress'),
   );
 
   $form['shuffle'] = array(
@@ -53,13 +54,74 @@ function bubblesort_form($form, &$form_state) {
 }
 
 /**
- * Chart to display
+ * Bubblesort algorithm.
+ *
+ * @param array $arr
+ *   array to sort
+ *
+ * @return array
+ *   sorted array
+ */
+function bubblesort_sort($arr) {
+  $size = count($arr);
+  for ($i = 0; $i < $size; $i++) {
+    for ($j = 0; $j < $size - 1 - $i; $j++) {
+      if ($arr[$j + 1] < $arr[$j]) {
+        bubblesort_swap($arr, $j, $j + 1);
+      }
+    }
+  }
+  return $arr;
+}
+
+/**
+ * Swaps two array elements.
+ *
+ * @param array $arr
+ *   the array to use
+ * @param int $a
+ *   element a to swap with b
+ * @param int $b
+ *   element b to swap with a
+ */
+function bubblesort_swap(&$arr, $a, $b) {
+  $tmp = $arr[$a];
+  $arr[$a] = $arr[$b];
+  $arr[$b] = $tmp;
+}
+
+
+/**
+ * Chart to display.
  *
  * @return string
  *   html for chart
  */
 function bubblesort_chart() {
-  return 'chart display';
+  $arr = variable_get('bubblesort_vector');
+  $size = count($arr);
+  $i = variable_get('bubblesort_i');
+  $j = variable_get('bubblesort_j');
+  $output = '';
+
+  for ($k = 0; $k < $size; $k++) {
+    if ($k == $j || $k == ($j + 1)) {
+      $output .= '<span style="color: red">' . $arr[$k] . '</span><br/>';
+    }
+    else {
+      $output .= $arr[$k] . '<br/>';
+    }
+
+  }
+
+  $output .= '<p>Answer Key</p>';
+
+  foreach (bubblesort_sort($arr) as $b) {
+    $output .= $b . '<br/>';
+  }
+
+
+  return $output;
 }
 
 /**
@@ -71,8 +133,50 @@ function bubblesort_chart() {
  *   Drupal form array state
  */
 function bubblesort_form_step_submit($form, &$form_state) {
-  drupal_set_message('Step');
+
+  $arr = variable_get('bubblesort_vector');
+  $size = count($arr);
+  $i = variable_get('bubblesort_i');
+  $j = variable_get('bubblesort_j');
+
+  bubblesort_step($i, $size, $j, $arr);
 }
+
+/**
+ * Main algorithm for each step of the bubble sort.
+ *
+ * @param int $i
+ *   index of array
+ * @param int $size
+ *   size of the array
+ * @param int $j
+ *   location of the sorter
+ * @param array $arr
+ *   the array to sort
+ */
+function bubblesort_step($i, $size, $j, $arr) {
+  if ($i < $size) {
+    if ($j < $size - 1 - $i) {
+      if ($arr[$j + 1] < $arr[$j]) {
+        bubblesort_swap($arr, $j, $j + 1);
+      }
+      $j++;
+    }
+    else {
+      $j = 0;
+      $i++;
+    }
+  }
+  else {
+    drupal_set_message('Sorted!');
+    variable_set('bubblesort_in_progress', 0);
+  }
+
+  variable_set('bubblesort_vector', $arr);
+  variable_set('bubblesort_i', $i);
+  variable_set('bubblesort_j', $j);
+}
+
 
 /**
  * Submit handler for shuffling.
@@ -83,7 +187,24 @@ function bubblesort_form_step_submit($form, &$form_state) {
  *   Drupal form array state
  */
 function bubblesort_form_shuffle_submit($form, &$form_state) {
-  drupal_set_message('shuffle submitted');
+  bubblesort_reset();
+
+  drupal_set_message(
+    t('You have successfully generated @count numbers, ready to be sorted.',
+      array('@count' => variable_get('bubblesort_vector_size')))
+  );
+}
+
+/**
+ * Resets the simulator.
+ */
+function bubblesort_reset() {
+  $size = 10;
+  variable_set('bubblesort_vector_size', $size);
+  variable_set('bubblesort_vector', bubblesort_shuffle($size));
+  variable_set('bubblesort_i', 0);
+  variable_set('bubblesort_j', 0);
+  variable_set('bubblesort_in_progress', 1);
 }
 
 /**
@@ -102,8 +223,4 @@ function bubblesort_shuffle($number = 10) {
   }
 
   return $seed;
-}
-
-function bubblesort_algorithm() {
-
 }
