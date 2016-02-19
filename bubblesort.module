@@ -4,6 +4,7 @@
  * Implements hook_menu().
  */
 function bubblesort_menu() {
+  $items = array();
 
   $items['bubblesort'] = array(
     'title' => 'Bubblesort simulator',
@@ -12,7 +13,96 @@ function bubblesort_menu() {
     'access arguments' => array('access content'),
   );
 
+  $items['bubblesort_step_data'] = array(
+    'title' => 'Bubblesort simulator',
+    'page callback' => 'bubblesort_step_callback',
+    'access arguments' => array('access content'),
+  );
+
   return $items;
+}
+
+/**
+ * Page callback that delivers the JSON needed for the google chart.
+ */
+function bubblesort_step_callback() {
+  $arr = variable_get('bubblesort_vector');
+  $size = count($arr);
+  $i = variable_get('bubblesort_i');
+  $j = variable_get('bubblesort_j');
+
+  bubblesort_step($i, $size, $j, $arr);
+  bubblesort_generate_json();
+}
+
+/**
+ * Generates the json needed for the google chart.
+ *
+ * @see https://google-developers.appspot.com/chart/interactive/docs/reference
+ */
+function bubblesort_generate_json() {
+  $cols = bubblesort_generate_columns();
+  $rows = bubblesort_generate_rows();
+
+  drupal_json_output(array("cols" => $cols, "rows" => $rows));
+}
+
+/**
+ * Creates the columns needed for conversion into json.
+ *
+ * @return array
+ *   columns array
+ */
+function bubblesort_generate_columns() {
+  $cols = array();
+  $cols[] = array(
+    "label" => "Level",
+    "type" => "string",
+  );
+  $cols[] = array(
+    "label" => "Number",
+    "type" => "number",
+  );
+  $cols[] = array(
+    "type" => "string",
+    "p" => array("role" => "style"),
+  );
+
+  return $cols;
+}
+
+/**
+ * Creates the rows needed for conversion into json.
+ *
+ * @return array
+ *   row array
+ */
+function bubblesort_generate_rows() {
+  $arr = variable_get('bubblesort_vector');
+  $size = count($arr);
+  $j = variable_get('bubblesort_j');
+  $rows = array();
+
+  for ($k = 0; $k < $size; $k++) {
+
+    $row = array(
+      "c" => array(
+        array("v" => $arr[$k]),
+        array("v" => (int) $arr[$k]),
+      ),
+    );
+
+    if ($k == $j || $k == ($j + 1)) {
+      $row['c'][] = array('v' => 'color: red');
+    }
+    else {
+      $row['c'][] = array('v' => 'color: blue');
+    }
+
+    $rows[] = $row;
+  }
+
+  return $rows;
 }
 
 /**
@@ -44,7 +134,7 @@ function bubblesort_form($form, &$form_state) {
 
   $form['chart'] = array(
     '#type' => 'markup',
-    '#markup' => '<div id="chart"></div>'
+    '#markup' => '<div id="chart"></div>',
   );
 
   $form['step'] = array(
@@ -64,7 +154,7 @@ function bubblesort_form($form, &$form_state) {
 }
 
 /**
- * Bubblesort algorithm.
+ * Bubblesort algorithm reference.
  *
  * @param array $arr
  *   array to sort

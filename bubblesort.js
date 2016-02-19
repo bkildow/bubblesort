@@ -1,24 +1,29 @@
 (function ($) {
   Drupal.behaviors.bubblesort = {
     attach: function (context, settings) {
+      $('#edit-step').click(function() {
+        drawChart();
+        return false;
+      });
 
       google.charts.load('current', {packages: ['corechart']});
       google.charts.setOnLoadCallback(drawChart);
 
 
       function drawChart() {
-        var data = google.visualization.arrayToDataTable([
-          ['label', 'value', { role: 'style' }],
-          ['', 8175000, 'blue'],
-          ['', 3792000, 'blue'],
-          ['', 2695000, 'red'],
-          ['', 2099000, 'blue'],
-          ['', 1526000, 'blue']
-        ]);
+        var jsonData = $.ajax({
+          url: "/bubblesort_step_data",
+          dataType: "json",
+          async: false
+        }).responseText;
+
+        // Create our data table out of JSON data loaded from server.
+        var data = new google.visualization.DataTable(jsonData);
 
         var options = {
+          legend: 'none',
           title: '',
-          chartArea: {width: '75%'},
+          chartArea: {width: '75%'}
         };
 
         var chart = new google.visualization.BarChart(document.getElementById('chart'));
