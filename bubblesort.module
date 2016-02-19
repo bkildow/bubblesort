@@ -1,4 +1,10 @@
 <?php
+/**
+ * @file
+ * Bubble sort module.
+ *
+ * @author Brian Kildow
+ */
 
 /**
  * Implements hook_menu().
@@ -7,7 +13,7 @@ function bubblesort_menu() {
   $items = array();
 
   $items['bubblesort'] = array(
-    'title' => 'Bubblesort simulator',
+    'title' => 'Bubble Sort Simulator',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('bubblesort_form'),
     'access arguments' => array('access content'),
@@ -30,9 +36,15 @@ function bubblesort_step_callback() {
   $size = count($arr);
   $i = variable_get('bubblesort_i');
   $j = variable_get('bubblesort_j');
+  $progress = variable_get('bubblesort_in_progress');
 
-  bubblesort_step($i, $size, $j, $arr);
+  // Send along some extra info if we have successfully sorted the array.
+  if ($progress === 0) {
+    drupal_add_http_header('X-sorted', '1');
+  }
+
   bubblesort_generate_json();
+  bubblesort_step($i, $size, $j, $arr);
 }
 
 /**
@@ -43,7 +55,6 @@ function bubblesort_step_callback() {
 function bubblesort_generate_json() {
   $cols = bubblesort_generate_columns();
   $rows = bubblesort_generate_rows();
-
   drupal_json_output(array("cols" => $cols, "rows" => $rows));
 }
 
@@ -118,6 +129,7 @@ function bubblesort_generate_rows() {
  */
 function bubblesort_form($form, &$form_state) {
 
+  // Load the google charts javascript.
   $form['#attached']['js'] = array(
     drupal_get_path('module', 'bubblesort') . '/bubblesort.js' => array(
       'type' => 'file',
@@ -129,19 +141,18 @@ function bubblesort_form($form, &$form_state) {
 
   $form['description'] = array(
     '#type' => 'item',
-    '#title' => t('A bubblesort simulator'),
+    '#title' => t('A Bubble Sort Simulator'),
   );
 
   $form['chart'] = array(
     '#type' => 'markup',
-    '#markup' => '<div id="chart"></div>',
+    '#markup' => '<div id="chart" style="height: 300px;"></div>',
   );
 
+  // Submission controlled through ajax, see javascript file for details.
   $form['step'] = array(
     '#type' => 'submit',
     '#value' => 'Step',
-    '#submit' => array('bubblesort_form_step_submit'),
-    '#disabled' => !variable_get('bubblesort_in_progress'),
   );
 
   $form['shuffle'] = array(
@@ -190,58 +201,6 @@ function bubblesort_swap(&$arr, $a, $b) {
   $arr[$b] = $tmp;
 }
 
-
-/**
- * Chart to display.
- *
- * @return string
- *   html for chart
- */
-function bubblesort_chart() {
-  $arr = variable_get('bubblesort_vector');
-  $size = count($arr);
-  $i = variable_get('bubblesort_i');
-  $j = variable_get('bubblesort_j');
-  $output = '';
-
-  for ($k = 0; $k < $size; $k++) {
-    if ($k == $j || $k == ($j + 1)) {
-      $output .= '<span style="color: red">' . $arr[$k] . '</span><br/>';
-    }
-    else {
-      $output .= $arr[$k] . '<br/>';
-    }
-
-  }
-
-  $output .= '<p>Answer Key</p>';
-
-  foreach (bubblesort_sort($arr) as $b) {
-    $output .= $b . '<br/>';
-  }
-
-
-  return $output;
-}
-
-/**
- * Submit handler for stepping through.
- *
- * @param array $form
- *   Drupal form array
- * @param array $form_state
- *   Drupal form array state
- */
-function bubblesort_form_step_submit($form, &$form_state) {
-
-  $arr = variable_get('bubblesort_vector');
-  $size = count($arr);
-  $i = variable_get('bubblesort_i');
-  $j = variable_get('bubblesort_j');
-
-  bubblesort_step($i, $size, $j, $arr);
-}
-
 /**
  * Main algorithm for each step of the bubble sort.
  *
@@ -268,7 +227,6 @@ function bubblesort_step($i, $size, $j, $arr) {
     }
   }
   else {
-    drupal_set_message('Sorted!');
     variable_set('bubblesort_in_progress', 0);
   }
 

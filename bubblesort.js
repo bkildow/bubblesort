@@ -1,7 +1,7 @@
 (function ($) {
   Drupal.behaviors.bubblesort = {
     attach: function (context, settings) {
-      $('#edit-step').click(function() {
+      $('#edit-step').click(function () {
         drawChart();
         return false;
       });
@@ -11,14 +11,21 @@
 
 
       function drawChart() {
-        var jsonData = $.ajax({
+        var ajax = $.ajax({
           url: "/bubblesort_step_data",
           dataType: "json",
           async: false
-        }).responseText;
+        });
+
+        var sorted = ajax.getResponseHeader('X-sorted');
+
+        if (sorted == 1) {
+          $("#main-content").after('<div class="messages messages--status">Sorted!</div>');
+          $('#edit-step').prop("disabled", true);
+        }
 
         // Create our data table out of JSON data loaded from server.
-        var data = new google.visualization.DataTable(jsonData);
+        var data = new google.visualization.DataTable(ajax.responseText);
 
         var options = {
           legend: 'none',
@@ -30,7 +37,6 @@
         chart.draw(data, options);
 
       }
-
     }
   };
 })(jQuery);
