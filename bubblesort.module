@@ -27,6 +27,16 @@ function bubblesort_menu() {
  *   Drupal form array
  */
 function bubblesort_form($form, &$form_state) {
+
+  $form['#attached']['js'] = array(
+    drupal_get_path('module', 'bubblesort') . '/bubblesort.js' => array(
+      'type' => 'file',
+    ),
+    'https://www.gstatic.com/charts/loader.js' => array(
+      'type' => 'external',
+    ),
+  );
+
   $form['description'] = array(
     '#type' => 'item',
     '#title' => t('A bubblesort simulator'),
@@ -34,7 +44,7 @@ function bubblesort_form($form, &$form_state) {
 
   $form['chart'] = array(
     '#type' => 'markup',
-    '#markup' => bubblesort_chart(),
+    '#markup' => '<div id="chart"></div>'
   );
 
   $form['step'] = array(
