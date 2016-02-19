@@ -1,2 +1,109 @@
 <?php
 
+/**
+ * Implements hook_menu().
+ */
+function bubblesort_menu() {
+
+  $items['bubblesort'] = array(
+    'title' => 'Bubblesort simulator',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('bubblesort_form'),
+    'access arguments' => array('access content'),
+  );
+
+  return $items;
+}
+
+/**
+ * Form builder.
+ *
+ * @param array $form
+ *   Drupal form array
+ * @param array $form_state
+ *   Drupal form state array
+ *
+ * @return array
+ *   Drupal form array
+ */
+function bubblesort_form($form, &$form_state) {
+  $form['description'] = array(
+    '#type' => 'item',
+    '#title' => t('A bubblesort simulator'),
+  );
+
+  $form['chart'] = array(
+    '#type' => 'markup',
+    '#markup' => bubblesort_chart(),
+  );
+
+  $form['step'] = array(
+    '#type' => 'submit',
+    '#value' => 'Step',
+    '#submit' => array('bubblesort_form_step_submit'),
+  );
+
+  $form['shuffle'] = array(
+    '#type' => 'submit',
+    '#value' => 'Shuffle',
+    '#submit' => array('bubblesort_form_shuffle_submit'),
+  );
+
+  return $form;
+}
+
+/**
+ * Chart to display
+ *
+ * @return string
+ *   html for chart
+ */
+function bubblesort_chart() {
+  return 'chart display';
+}
+
+/**
+ * Submit handler for stepping through.
+ *
+ * @param array $form
+ *   Drupal form array
+ * @param array $form_state
+ *   Drupal form array state
+ */
+function bubblesort_form_step_submit($form, &$form_state) {
+  drupal_set_message('Step');
+}
+
+/**
+ * Submit handler for shuffling.
+ *
+ * @param array $form
+ *   Drupal form array
+ * @param array $form_state
+ *   Drupal form array state
+ */
+function bubblesort_form_shuffle_submit($form, &$form_state) {
+  drupal_set_message('shuffle submitted');
+}
+
+/**
+ * Gets an array of random numbers.
+ *
+ * @param int $number
+ *   number in the array
+ *
+ * @return array
+ *   populated array
+ */
+function bubblesort_shuffle($number = 10) {
+  $seed = array();
+  for ($i = 1; $i <= $number; $i++) {
+    $seed[] = rand(0, 100);
+  }
+
+  return $seed;
+}
+
+function bubblesort_algorithm() {
+
+}
