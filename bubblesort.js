@@ -40,7 +40,7 @@
         var sorted = ajax.getResponseHeader('X-sorted');
 
         if (sorted == 1) {
-          $("#main-content").after('<div class="messages messages--status">Sorted!</div>');
+          $("#main-content").after('<div class="messages status">Sorted!</div>');
           $('#edit-step').attr('disabled', true);
           $('#edit-play').attr('disabled', true);
           if (typeof interval !== 'undefined') {
