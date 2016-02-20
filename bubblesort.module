@@ -150,14 +150,20 @@ function bubblesort_form($form, &$form_state) {
   );
 
   // Submission controlled through ajax, see javascript file for details.
+  $form['play'] = array(
+    '#type' => 'submit',
+    '#value' => t('Play'),
+  );
+
+  // Submission controlled through ajax, see javascript file for details.
   $form['step'] = array(
     '#type' => 'submit',
-    '#value' => 'Step',
+    '#value' => t('Step'),
   );
 
   $form['shuffle'] = array(
     '#type' => 'submit',
-    '#value' => 'Shuffle',
+    '#value' => t('Shuffle'),
     '#submit' => array('bubblesort_form_shuffle_submit'),
   );
 
